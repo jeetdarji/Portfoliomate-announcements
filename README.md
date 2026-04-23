@@ -17,8 +17,6 @@
 
 ---
 
-LIVE LINK : portfoliomate-announcements.vercel.app
-
 ## Overview
 
 Portfoliomate Announcements is a **production-grade internal feed** built for investment firms. Fund managers and analysts can publish rich-text announcements with images, PDFs, and tags — while AI automatically extracts pitch-deck insights and enables multi-turn Q&A on any uploaded document.
