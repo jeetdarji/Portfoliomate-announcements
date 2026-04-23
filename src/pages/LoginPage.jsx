@@ -36,6 +36,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const { signInWithEmail, signInWithGoogle, resetPassword } = useAuth()
   const session = useAuthStore((s) => s.session)
+  const loading = useAuthStore((s) => s.loading)
 
   // ALL hooks must be called before any early return
   const { register, handleSubmit, formState: { errors, isSubmitting }, getValues, trigger } = useForm({
@@ -45,6 +46,15 @@ export function LoginPage() {
       password: '',
     }
   })
+
+  // While auth is initializing, show nothing (prevent flash → redirect loop)
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB]">
+        <Spinner size="lg" color="indigo" />
+      </div>
+    )
+  }
 
   // Redirect if already logged in (AFTER all hooks)
   if (session) return <Navigate to="/app/announcements" replace />

@@ -35,6 +35,9 @@ function cleanOAuthUrl() {
 }
 
 // ── Auth initializer hook (call ONCE in App.jsx) ────────────────────
+// Uses ONLY onAuthStateChange (which fires INITIAL_SESSION immediately)
+// instead of calling both getSession() + onAuthStateChange in parallel,
+// which caused a race condition that left Chrome in infinite loading.
 export function useAuthInit() {
   const initialized = useRef(false)
 
@@ -45,57 +48,51 @@ export function useAuthInit() {
 
     const { setSession, setProfile, setLoading, clearAuth } = useAuthStore.getState()
 
-    const initAuth = async () => {
-      setLoading(true)
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-
-        if (session) {
-          setSession(session)
-          const profile = await fetchProfile(session.user.id)
-          setProfile(profile)
-        }
-      } catch (err) {
-        if (import.meta.env.DEV) console.error('initAuth error:', err)
-      }
-
-      // Clean OAuth artifacts from URL
-      cleanOAuthUrl()
-      setLoading(false)
-    }
-
-    initAuth()
-
+    // onAuthStateChange fires INITIAL_SESSION synchronously on registration,
+    // so we do NOT need a separate getSession() call.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (import.meta.env.DEV) console.log('[auth event]', event)
 
-        if (event === 'SIGNED_IN' && session) {
-          setSession(session)
-          const profile = await fetchProfile(session.user.id)
-          setProfile(profile)
-          setLoading(false)
-          cleanOAuthUrl()
-        } else if (event === 'SIGNED_OUT') {
+        if (event === 'SIGNED_OUT') {
           clearAuth()
-        } else if (event === 'TOKEN_REFRESHED' && session) {
+          return
+        }
+
+        if (event === 'TOKEN_REFRESHED') {
+          if (session) setSession(session)
+          return
+        }
+
+        // INITIAL_SESSION or SIGNED_IN
+        if (session) {
           setSession(session)
-        } else if (event === 'INITIAL_SESSION') {
-          // Supabase v2 fires this — session may or may not exist
-          if (session) {
-            setSession(session)
+          try {
             const profile = await fetchProfile(session.user.id)
             setProfile(profile)
+          } catch {
+            // Profile fetch failed — ProtectedRoute will show "Account Not Set Up"
           }
-          setLoading(false)
-          cleanOAuthUrl()
         }
+
+        setLoading(false)
+        cleanOAuthUrl()
       }
     )
 
+    // Safety net: if auth never resolves (corrupt localStorage, network issue,
+    // or a browser extension blocking Supabase), stop the loading spinner.
+    const safetyTimeout = setTimeout(() => {
+      const { loading } = useAuthStore.getState()
+      if (loading) {
+        if (import.meta.env.DEV) console.warn('[auth] Safety timeout — forcing loading=false')
+        setLoading(false)
+      }
+    }, 5000)
+
     return () => {
       subscription.unsubscribe()
+      clearTimeout(safetyTimeout)
     }
   }, [])
 }
