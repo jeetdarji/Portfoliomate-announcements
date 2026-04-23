@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #F9FAFB;
+    color: #0F172B;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .font-manrope {
+    font-family: 'Manrope', sans-serif;
+  }
+
+  /* Hide scrollbar but keep scroll functionality */
+  * {
+    scrollbar-width: none; /* Firefox */
+  }
+  ::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+}
+
+@layer components {
+  .tiptap {
+    outline: none;
+    min-height: 160px;
+    font-size: 14px;
+    color: #0F172B;
+    line-height: 1.6;
+  }
+  .tiptap p { margin-bottom: 0.5rem; }
+  .tiptap h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .tiptap h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .tiptap h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .tiptap ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .tiptap ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .tiptap a { color: #4F39F5; text-decoration: underline; }
+  .tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: #90A1B9;
+    pointer-events: none;
+    float: left;
+    height: 0;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+  }
+
+  /* AI Summary shimmer skeleton */
+  .ai-shimmer {
+    background: linear-gradient(90deg, #E0E7FF 25%, #EEF2FE 50%, #E0E7FF 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
