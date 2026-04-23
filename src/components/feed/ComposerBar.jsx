@@ -29,7 +29,10 @@ export function ComposerBar({ user = { name: "Navya Suvarna", avatarUrl: null },
 
       {/* Bottom Row */}
       <div className="flex items-center gap-1 pt-3">
-        <button className="flex items-center gap-2 cursor-pointer hover:bg-[#F8FAFC] transition-colors duration-150 bg-transparent border-none rounded-md px-1 py-1">
+        <button 
+          onClick={onOpenModal}
+          className="flex items-center gap-2 cursor-pointer hover:bg-[#F8FAFC] transition-colors duration-150 bg-transparent border-none rounded-md px-1 py-1"
+        >
           <div className="w-8 h-8 rounded-[8px] bg-[#EEF2FE] flex items-center justify-center flex-shrink-0">
             <ImageIcon size={16} className="text-[#010080]" />
           </div>
@@ -37,7 +40,10 @@ export function ComposerBar({ user = { name: "Navya Suvarna", avatarUrl: null },
             Image
           </span>
         </button>
-        <button className="flex items-center gap-2 cursor-pointer hover:bg-[#F8FAFC] transition-colors duration-150 bg-transparent border-none rounded-md px-1 py-1">
+        <button 
+          onClick={onOpenModal}
+          className="flex items-center gap-2 cursor-pointer hover:bg-[#F8FAFC] transition-colors duration-150 bg-transparent border-none rounded-md px-1 py-1"
+        >
           <div className="w-8 h-8 rounded-[8px] bg-[#EEFCF5] flex items-center justify-center flex-shrink-0">
             <Paperclip size={16} className="text-[#22C55E]" />
           </div>
