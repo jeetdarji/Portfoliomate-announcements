@@ -11,19 +11,20 @@ export function ProtectedRoute({ children }) {
   const signingOut = useRef(false)
 
   // Session exists but profile is missing (stale session / trigger failure).
-  // Automatically sign out so the user lands on the login page cleanly.
+  // Clear auth immediately (no network wait) so the user lands on login,
+  // then fire signOut() in the background to clean the Supabase session.
   useEffect(() => {
     if (!loading && session && !profile && !signingOut.current) {
       signingOut.current = true
-      supabase.auth.signOut().catch(() => {
-        // If signOut fails, force-clear the store so we still redirect
-        useAuthStore.getState().clearAuth()
-      })
+      // Immediately clear the store → triggers redirect to /login
+      useAuthStore.getState().clearAuth()
+      // Background cleanup — don't block on the network call
+      supabase.auth.signOut().catch(() => {})
     }
   }, [loading, session, profile])
 
-  // While checking session (or signing out a stale session): show spinner
-  if (loading || (session && !profile)) {
+  // While checking session: show spinner
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB]">
         <Spinner size="lg" color="indigo" />
@@ -31,8 +32,8 @@ export function ProtectedRoute({ children }) {
     )
   }
 
-  // No session → redirect to login
-  if (!session) {
+  // No session (or stale session just cleared) → redirect to login
+  if (!session || !profile) {
     return <Navigate to="/login" replace />
   }
 

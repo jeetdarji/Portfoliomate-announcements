@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { sanitizeSupabaseError } from '@/lib/utils'
@@ -39,14 +39,12 @@ function cleanOAuthUrl() {
 // instead of calling both getSession() + onAuthStateChange in parallel,
 // which caused a race condition that left Chrome in infinite loading.
 export function useAuthInit() {
-  const initialized = useRef(false)
-
   useEffect(() => {
-    // Prevent double-init in React StrictMode
-    if (initialized.current) return
-    initialized.current = true
-
     const { setSession, setProfile, setLoading, clearAuth } = useAuthStore.getState()
+
+    // Track whether this effect instance is still active (not cleaned up).
+    // Prevents stale async callbacks from writing to the store after unmount.
+    let active = true
 
     // onAuthStateChange fires INITIAL_SESSION synchronously on registration,
     // so we do NOT need a separate getSession() call.
@@ -69,14 +67,16 @@ export function useAuthInit() {
           setSession(session)
           try {
             const profile = await fetchProfile(session.user.id)
-            setProfile(profile)
+            if (active) setProfile(profile)
           } catch {
-            // Profile fetch failed — ProtectedRoute will show "Account Not Set Up"
+            // Profile fetch failed — ProtectedRoute will handle it
           }
         }
 
-        setLoading(false)
-        cleanOAuthUrl()
+        if (active) {
+          setLoading(false)
+          cleanOAuthUrl()
+        }
       }
     )
 
@@ -91,6 +91,7 @@ export function useAuthInit() {
     }, 5000)
 
     return () => {
+      active = false
       subscription.unsubscribe()
       clearTimeout(safetyTimeout)
     }
